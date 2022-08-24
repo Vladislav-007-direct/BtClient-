@@ -2,6 +2,8 @@
 #define FREEIMUCAL_H
 
 #include <QMainWindow>
+#include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QSettings>
 #include <QThread>
 #include <QVector2D>
@@ -39,6 +41,8 @@ private:
     QSettings* settings;
     QVector<QVector<long>> acc_data;
     QVector<QVector<long>> magn_data;
+    QString serial_port;
+    QSerialPort ser;
 };
 
 class SerialWorker : public QThread {

@@ -1,4 +1,4 @@
-QT       += core gui charts datavisualization
+QT       += core gui charts datavisualization serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

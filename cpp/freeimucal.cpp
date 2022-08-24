@@ -98,3 +98,62 @@ FreeIMUCal::~FreeIMUCal() {
 void FreeIMUCal::set_status(QString status) {
     ui->statusbar->showMessage(status);
 }
+
+void FreeIMUCal::serial_connect() {
+    serial_port = ui->serialPortEdit->text();
+    // save serial value to user settings
+    settings->setValue("calgui/serialPortEdit", serial_port);
+
+    ui->connectButton->setEnabled(false);
+    // waiting mouse cursor
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+    set_status("Connecting to " + serial_port + " ...");
+
+    // TODO : serial port field input validation !
+
+    try {
+        ser.setPort(QSerialPortInfo(serial_port));
+        ser.setBaudRate(115200);
+        ser.setParity(QSerialPort::Parity::NoParity);
+        ser.setStopBits(QSerialPort::StopBits::OneStop);
+        ser.setDataBits(QSerialPort::DataBits::Data8);
+
+        if (ser.isOpen()) {
+
+            qDebug() << "Arduino serial port opened correctly";
+            set_status("Connection Successfull. Waiting for Arduino reset...");
+            // wait for arduino reset on serial open
+            QThread::sleep(3);
+            // clear serial interface buffers
+            ser.clear();
+            QThread::msleep(100);
+            ser.write("v", 1); // ask version
+
+            set_status("Connected to: " + QString(ser.readLine(100'000)));
+
+            // TODO hangs if a wrong serial protocol has been loaded.To be
+            // fixed.
+
+            ui->connectButton->setText("Disconnect");
+            connect(ui->connectButton, &QPushButton::clicked, this,
+                    &FreeIMUCal::serial_disconnect);
+
+            ui->serialPortEdit->setEnabled(false);
+            ui->serialProtocol->setEnabled(false);
+
+            ui->samplingToggleButton->setEnabled(true);
+
+            ui->clearCalibrationEEPROMButton->setEnabled(true);
+            connect(ui->clearCalibrationEEPROMButton, &QPushButton::clicked,
+                    this, &FreeIMUCal::clear_calibration_eeprom);
+        }
+    } catch (...) {
+        ui->connectButton->setEnabled(true);
+        set_status("Impossible to connect: error id" +
+                   QString::number(ser.error()));
+    }
+
+    // restore mouse cursor
+    QApplication::restoreOverrideCursor();
+    ui->connectButton->setEnabled(true);
+}
