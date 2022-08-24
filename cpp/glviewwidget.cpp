@@ -15,3 +15,9 @@ GLViewWidget::~GLViewWidget() {
     delete container;
     delete layout;
 }
+
+void GLViewWidget::setSize(long x, long y, long z) {
+    graph->axisX()->setSegmentCount(x);
+    graph->axisY()->setSegmentCount(y);
+    graph->axisZ()->setSegmentCount(z);
+}

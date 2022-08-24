@@ -11,6 +11,8 @@ public:
     GLViewWidget(QWidget* parent);
     ~GLViewWidget();
 
+    void setSize(long, long, long);
+
 private:
     Q3DScatter* graph;
     QWidget* container;
