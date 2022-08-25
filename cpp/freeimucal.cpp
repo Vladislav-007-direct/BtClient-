@@ -7,6 +7,8 @@ FreeIMUCal::FreeIMUCal(QWidget* parent)
     // Set up the user interface from Designer.
     ui->setupUi(this);
 
+    ser = std::make_shared<QSerialPort>();
+
     // load user settings
     settings =
         new QSettings("FreeIMU Calibration Application", "Fabio Varesano");
@@ -93,6 +95,8 @@ FreeIMUCal::FreeIMUCal(QWidget* parent)
 FreeIMUCal::~FreeIMUCal() {
     delete ui;
     delete settings;
+    ser->close();
+    delete serWorker;
 }
 
 void FreeIMUCal::set_status(QString status) {
@@ -112,24 +116,24 @@ void FreeIMUCal::serial_connect() {
     // TODO : serial port field input validation !
 
     try {
-        ser.setPort(QSerialPortInfo(serial_port));
-        ser.setBaudRate(115200);
-        ser.setParity(QSerialPort::Parity::NoParity);
-        ser.setStopBits(QSerialPort::StopBits::OneStop);
-        ser.setDataBits(QSerialPort::DataBits::Data8);
+        ser->setPort(QSerialPortInfo(serial_port));
+        ser->setBaudRate(115200);
+        ser->setParity(QSerialPort::Parity::NoParity);
+        ser->setStopBits(QSerialPort::StopBits::OneStop);
+        ser->setDataBits(QSerialPort::DataBits::Data8);
 
-        if (ser.isOpen()) {
+        if (ser->isOpen()) {
 
             qDebug() << "Arduino serial port opened correctly";
             set_status("Connection Successfull. Waiting for Arduino reset...");
             // wait for arduino reset on serial open
             QThread::sleep(3);
             // clear serial interface buffers
-            ser.clear();
+            ser->clear();
             QThread::msleep(100);
-            ser.write("v", 1); // ask version
+            ser->write("v", 1); // ask version
 
-            set_status("Connected to: " + QString(ser.readLine(100'000)));
+            set_status("Connected to: " + QString(ser->readLine(100000)));
 
             // TODO hangs if a wrong serial protocol has been loaded.To be
             // fixed.
@@ -150,10 +154,132 @@ void FreeIMUCal::serial_connect() {
     } catch (...) {
         ui->connectButton->setEnabled(true);
         set_status("Impossible to connect: error id" +
-                   QString::number(ser.error()));
+                   QString::number(ser->error()));
     }
 
     // restore mouse cursor
     QApplication::restoreOverrideCursor();
     ui->connectButton->setEnabled(true);
+}
+
+void FreeIMUCal::serial_disconnect() {
+    qDebug() << "Disconnecting from " + serial_port;
+    ser->close();
+    set_status("Disconnected");
+    ui->serialPortEdit->setEnabled(true);
+    ui->serialProtocol->setEnabled(true);
+
+    ui->connectButton->setText("Connect");
+    disconnect(ui->connectButton, &QPushButton::clicked, this,
+               &FreeIMUCal::serial_disconnect);
+    connect(ui->connectButton, &QPushButton::clicked, this,
+            &FreeIMUCal::serial_connect);
+
+    ui->samplingToggleButton->setEnabled(false);
+
+    ui->clearCalibrationEEPROMButton->setEnabled(false);
+    disconnect(ui->clearCalibrationEEPROMButton, &QPushButton::clicked, this,
+               &FreeIMUCal::clear_calibration_eeprom);
+}
+
+void FreeIMUCal::sampling_start() {
+    serWorker = new SerialWorker(ser);
+    connect(serWorker, &SerialWorker::new_data_signal, this,
+            &FreeIMUCal::newData);
+
+    serWorker->start();
+    qDebug() << "Starting SerialWorker";
+    ui->samplingToggleButton->setText("Stop Sampling");
+    disconnect(ui->samplingToggleButton, &QPushButton::clicked, this,
+               &FreeIMUCal::sampling_start);
+    connect(ui->samplingToggleButton, &QPushButton::clicked, this,
+            &FreeIMUCal::sampling_end);
+}
+
+void FreeIMUCal::sampling_end()
+{
+
+}
+
+void FreeIMUCal::calibrate()
+{
+
+}
+
+void FreeIMUCal::save_calibration_eeprom()
+{
+
+}
+
+void FreeIMUCal::clear_calibration_eeprom()
+{
+
+}
+
+void FreeIMUCal::newData(QVector<short>)
+{
+
+}
+
+SerialWorker::SerialWorker(std::shared_ptr<QSerialPort> ser, QObject* parent)
+    : QThread(parent),
+      ser(ser),
+      exiting(false) {
+}
+
+SerialWorker::~SerialWorker() {
+    exiting = true;
+    wait();
+    qDebug() << "SerialWorker exits..";
+}
+
+void SerialWorker::run() {
+    qDebug() << "sampling start..";
+    acc_file.setFileName(acc_file_name);
+    acc_file.open(QFile::WriteOnly);
+    magn_file.setFileName(magn_file_name);
+    magn_file.open(QFile::WriteOnly);
+    int count = 100;
+    int in_values = 9;
+    QVector<int16_t> reading(in_values, 0);
+    // read data for calibration
+    while (!exiting) {
+        // determine word size
+        ser->write("b");
+        ser->write(QString(QChar(count)).toUtf8());
+        for (int j = 0; j < count; ++j) {
+            for (int i = 0; i < in_values; ++i) {
+                if (word == 4) {
+                    QDataStream stream(ser->read(4));
+                    stream >> reading[i];
+                }
+                if (word == 2) {
+                    QDataStream stream(ser->read(2));
+                    stream >> reading[i];
+                }
+            }
+            ser->read(2);
+            if (reading[8] == 0) {
+                reading[6] = 1;
+                reading[7] = 1;
+                reading[8] = 1;
+            }
+            // prepare readings to store on file
+            QString acc_readings_line =
+                QString("%d %d %d\r\n").arg(reading[0], reading[1], reading[2]);
+            acc_file.write(acc_readings_line.toUtf8());
+            QString magn_readings_line =
+                QString("%d %d %d\r\n").arg(reading[6], reading[7], reading[8]);
+            magn_file.write(magn_readings_line.toUtf8());
+        }
+
+        // every count times we pass some data to the GUI
+        emit new_data_signal(reading);
+        qDebug() << ".";
+    }
+
+    // closing acc and magn files
+    acc_file.close();
+    magn_file.close();
+    return;
 }

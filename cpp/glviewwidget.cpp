@@ -2,7 +2,7 @@
 
 GLViewWidget::GLViewWidget(QWidget* parent)
     : QWidget(parent) {
-    graph = new Q3DScatter();
+    graph = new QtDataVisualization::Q3DScatter();
     container = QWidget::createWindowContainer(graph);
     layout = new QHBoxLayout();
     layout->setContentsMargins(0, 0, 0, 0);

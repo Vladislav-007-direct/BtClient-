@@ -1,12 +1,14 @@
 #ifndef FREEIMUCAL_H
 #define FREEIMUCAL_H
 
+#include <QFile>
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QSettings>
 #include <QThread>
 #include <QVector2D>
+#include <memory.h>
 
 #define acc_file_name "acc.txt"
 #define magn_file_name "magn.txt"
@@ -14,6 +16,8 @@
 #define word 2
 #define acc_range 25000
 #define magn_range 1500
+
+class SerialWorker;
 
 namespace Ui {
 class FreeIMUCal;
@@ -34,20 +38,32 @@ public:
     void calibrate();
     void save_calibration_eeprom();
     void clear_calibration_eeprom();
-    void newData(QVector<int>);
+    void newData(QVector<short>);
 
 private:
-    Ui::FreeIMUCal* ui;
-    QSettings* settings;
+    Ui::FreeIMUCal* ui{nullptr};
+    QSettings* settings{nullptr};
     QVector<QVector<long>> acc_data;
     QVector<QVector<long>> magn_data;
     QString serial_port;
-    QSerialPort ser;
+    std::shared_ptr<QSerialPort> ser{nullptr};
+    SerialWorker* serWorker{nullptr};
 };
 
 class SerialWorker : public QThread {
+    Q_OBJECT
 public:
-    SerialWorker();
-};
+    SerialWorker(std::shared_ptr<QSerialPort> ser, QObject* parent = nullptr);
+    ~SerialWorker();
+    void run();
 
+signals:
+    void new_data_signal(QVector<short>);
+
+private:
+    std::shared_ptr<QSerialPort> ser{nullptr};
+    bool exiting;
+    QFile acc_file;
+    QFile magn_file;
+};
 #endif // FREEIMUCAL_H

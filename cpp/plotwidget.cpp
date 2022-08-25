@@ -5,11 +5,11 @@ PlotWidget::PlotWidget(QWidget* parent)
 
     setRenderHint(QPainter::Antialiasing);
 
-    chart = new QChart();
-    series = new QLineSeries();
+    chart = new QtCharts::QChart();
+    series = new QtCharts::QLineSeries();
 
-    chart->setAxisX(new QValueAxis(), series);
-    chart->setAxisY(new QValueAxis(), series);
+    chart->setAxisX(new QtCharts::QValueAxis(), series);
+    chart->setAxisY(new QtCharts::QValueAxis(), series);
 
     chart->addSeries(series);
     setChart(chart);

@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QValueAxis>
 
-class PlotWidget : public QChartView {
+class PlotWidget : public QtCharts::QChartView {
 public:
     PlotWidget(QWidget* parent);
     ~PlotWidget();
@@ -15,8 +15,8 @@ public:
     //    void setAspectLocked();
 
 private:
-    QChart* chart;
-    QLineSeries* series;
+    QtCharts::QChart* chart;
+    QtCharts::QLineSeries* series;
 };
 
 #endif // PLOTWIDGET_H

@@ -14,7 +14,7 @@ public:
     void setSize(long, long, long);
 
 private:
-    Q3DScatter* graph;
+    QtDataVisualization::Q3DScatter* graph;
     QWidget* container;
     QHBoxLayout* layout;
 };
