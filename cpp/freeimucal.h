@@ -1,7 +1,9 @@
 #ifndef FREEIMUCAL_H
 #define FREEIMUCAL_H
 
+#include "callib.h"
 #include <QFile>
+#include <QFileDialog>
 #include <QMainWindow>
 #include <QSerialPort>
 #include <QSerialPortInfo>
@@ -36,6 +38,7 @@ public:
     void sampling_start();
     void sampling_end();
     void calibrate();
+    void save_calibration_header();
     void save_calibration_eeprom();
     void clear_calibration_eeprom();
     void newData(QVector<short>);
@@ -43,11 +46,17 @@ public:
 private:
     Ui::FreeIMUCal* ui{nullptr};
     QSettings* settings{nullptr};
-    QVector<QVector<long>> acc_data;
-    QVector<QVector<long>> magn_data;
+    QVector<QVector<double>> acc_data;
+    QVector<QVector<double>> magn_data;
     QString serial_port;
     std::shared_ptr<QSerialPort> ser{nullptr};
     SerialWorker* serWorker{nullptr};
+    QVector<long> acc_offset;
+    QVector<double> acc_scale;
+    QVector<long> magn_offset;
+    QVector<double> magn_scale;
+    QVector<QVector<double>> acc_cal_data;
+    QVector<QVector<double>> magn_cal_data;
 };
 
 class SerialWorker : public QThread {
@@ -56,6 +65,9 @@ public:
     SerialWorker(std::shared_ptr<QSerialPort> ser, QObject* parent = nullptr);
     ~SerialWorker();
     void run();
+
+    bool getExiting() const;
+    void setExiting(bool newExiting);
 
 signals:
     void new_data_signal(QVector<short>);

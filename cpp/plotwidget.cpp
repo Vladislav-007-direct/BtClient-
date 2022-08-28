@@ -27,3 +27,14 @@ void PlotWidget::setXRange(double min, double max) {
 void PlotWidget::setYRange(double min, double max) {
     chart->axisY()->setRange(min, max);
 }
+
+void PlotWidget::plot(QVector<double>& X, QVector<double>& Y, QString pen,
+                      bool clear) {
+    if (clear) {
+        series->clear();
+    }
+    for (long i = 0; i < std::min(X.size(), Y.size()); ++i) {
+        series->append(X[i], Y[i]);
+    }
+    series->setColor(QColor(pen));
+}

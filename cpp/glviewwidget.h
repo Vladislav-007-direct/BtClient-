@@ -12,8 +12,12 @@ public:
     ~GLViewWidget();
 
     void setSize(long, long, long);
+    void plot(QVector<qreal>& x, QVector<qreal>& y, QVector<qreal>& z,
+              QString color, long size = 2);
 
 private:
+    QtDataVisualization::QScatter3DSeries* series;
+    QtDataVisualization::QScatterDataArray* data;
     QtDataVisualization::Q3DScatter* graph;
     QWidget* container;
     QHBoxLayout* layout;
