@@ -1,26 +1,26 @@
-"""
-cal_lib.py - Ellipsoid into Sphere calibration library based upon numpy and linalg
-Copyright (C) 2012 Fabio Varesano <fabio at varesano dot net>
+# """
+# cal_lib.py - Ellipsoid into Sphere calibration library based upon numpy and linalg
+# Copyright (C) 2012 Fabio Varesano <fabio at varesano dot net>
 
-Development of this code has been supported by the Department of Computer Science,
-Universita' degli Studi di Torino, Italy within the Piemonte Project
-http://www.piemonte.di.unito.it/
+# Development of this code has been supported by the Department of Computer Science,
+# Universita' degli Studi di Torino, Italy within the Piemonte Project
+# http://www.piemonte.di.unito.it/
 
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the version 3 GNU General Public License as
-published by the Free Software Foundation.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the version 3 GNU General Public License as
+# published by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-Conversion to Python 3.6 / PyQt5 - DPo - 1/2020
-"""
+# Conversion to Python 3.6 / PyQt5 - DPo - 1/2020
+# """
 
 import numpy
 from numpy import linalg

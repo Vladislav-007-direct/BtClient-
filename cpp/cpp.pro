@@ -19,6 +19,7 @@ HEADERS += \
     callib.h \
     freeimucal.h \
     glviewwidget.h \
+    matrix.h \
     plotwidget.h
 
 FORMS += \
